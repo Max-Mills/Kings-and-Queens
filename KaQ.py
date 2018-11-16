@@ -7,11 +7,13 @@ hands = []
 card = []
 players = 1
 
+### Takes the data from the json and puts it into the data variable ###
 with open('Cards.json', 'r') as j:
     data = json.load(j)
 
+
 class Deck:
-    
+    #### Builds the deck using the data from json and the SUIT const ###
     def build(self):
         for x in SUIT:
             for y in data["card"]:
@@ -20,9 +22,11 @@ class Deck:
                 deck.append(card)
         return deck
     
+    ### Shuffles the deck ###
     def shuffle(self, theDeck):
         random.shuffle(theDeck)
 
+    ### Splits the deck evenly depending on how many players there are ###
     def split(self, players, theDeck):
         numEachHand = int(len(theDeck)/players)
         start = 0
@@ -34,7 +38,7 @@ class Deck:
         return hands
 
 class Hand:
-
+    ### Finds out how many pairs the player has in their hand ###
     def pairs(self, theHand, player):
         i = 1
         thePairs = []
@@ -58,7 +62,7 @@ class Hand:
             
 
 
-
+### Testing ###
 
 myDeck = Deck()
 myHand = Hand()

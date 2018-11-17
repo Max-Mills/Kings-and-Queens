@@ -1,18 +1,30 @@
-import json
-import random
+from json import load
+from random import shuffle
+from collections import Counter
+from operator import itemgetter
 
-SUIT = ["Diamonds", "Clubs", "Spades", "Hearts"]
+
 deck = []
 hands = []
 card = []
+thePairs = []
+checklist = []
+sing = []
+doub = []
+trip = []
+quad = []
 players = 1
+
 
 ### Takes the data from the json and puts it into the data variable ###
 with open('Cards.json', 'r') as j:
-    data = json.load(j)
+    data = load(j)
+
+SUIT = ["♣", "♠", "♥", "♦"]
 
 
 class Deck:
+
     #### Builds the deck using the data from json and the SUIT const ###
     def build(self):
         for x in SUIT:
@@ -24,7 +36,8 @@ class Deck:
     
     ### Shuffles the deck ###
     def shuffle(self, theDeck):
-        random.shuffle(theDeck)
+        shuffle(theDeck)
+        
 
     ### Splits the deck evenly depending on how many players there are ###
     def split(self, players, theDeck):
@@ -38,23 +51,58 @@ class Deck:
         return hands
 
 class Hand:
-    ### Finds out how many pairs the player has in their hand ###
-    def pairs(self, theHand, player):
-        i = 1
-        thePairs = []
-        phand = theHand[player]
-        print(phand)
-        print()
+
+    
+    def order(self, phand):
+        phand = sorted(phand, key=itemgetter(0))
+        return phand
+
+    def print(self, phand):
+        print("Here is your hand: ")
         for x in phand:
-            checking = x[0]
-            for y in phand[i:len(phand)]:
-                if y[0] == checking:
-                    thePairs.append(checking)
-                    print(thePairs)
-                    break
-            i += 1    
-            #i += 1
-            #for y in theHand[i:len(theHand)]:
+            print ("%s%s" % (x[0],x[1]), end=" " )
+        print()
+        print ("You have %d singles, %d double, %d triplet, %d quadruple" % (len(sing),len(doub),len(trip),len(quad)))
+
+
+    def checkPairs(self, phand):
+        checklist = []
+        for x in phand:
+            checklist.append(x[0])
+        checklist = Counter(checklist)
+        for y in checklist:
+            if checklist[y] == 1:
+                sing.append(y)
+            elif checklist[y] == 2:
+                doub.append(y)
+            elif checklist[y] == 3:
+                trip.append(y)
+            else:
+                quad.append(y)
+        return sing,doub,trip,quad
+
+        
+def play():
+
+    myDeck = Deck()
+    myHand = Hand()
+
+    deck = myDeck.build()
+    myDeck.shuffle(deck)
+
+    print ("♥ Welcome to my card game ♦")
+    players = int(input("How many players are there? "))
+
+    hands = myDeck.split(players, deck)
+    hands = myHand.order(hands[1])
+    sing,doub,trip,quad = myHand.checkPairs(hands)
+
+    myHand.print(hands)
+
+    
+
+
+play()
 
             
        
@@ -62,16 +110,4 @@ class Hand:
             
 
 
-### Testing ###
 
-myDeck = Deck()
-myHand = Hand()
-
-deck = myDeck.build()
-myDeck.shuffle(deck)
-hands = myDeck.split(3, deck)
-
-myHand.pairs(hands, 1)
-
-# myHand.pairs(hands[0])
-# myHand.pairs(hands[1])

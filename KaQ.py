@@ -3,7 +3,6 @@ from random import shuffle
 from collections import Counter
 from operator import itemgetter
 
-
 deck = []
 hands = []
 myhand = []
@@ -11,9 +10,6 @@ card = []
 checklist = []
 pile = []
 players = 0
-
-SUIT = ["♣", "♠", "♥", "♦"]
-
 
 class Deck:
 
@@ -205,15 +201,3 @@ def checkiscard(question):
             print("That was not a number \n")
         else:
             return test
-        
-        
-        
-
-
-            
-       
-
-            
-
-
-

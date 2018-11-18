@@ -13,7 +13,7 @@ players = 0
 
 class Deck:
 
-    #### Builds the deck using the data from the json ###
+    ### Builds the deck using the data from the json ###
     def build(self):
         ### Takes the data from the json and puts it into the data variable ###
         with open('Cards.json', 'r') as j:
@@ -51,8 +51,8 @@ class Hand:
         return phand
 
     ### For all cards in your hand print individual card ###
-    def print(self, phand):
-        print("Here is your hand: ", end= " ")
+    def print(self, phand, currentplayer):
+        print("Here is player %s's hand: " % (currentplayer+1), end= " ")
         for x in phand:
             print ("%s%s" % (x[0],x[1]), end=" " )
         print()
@@ -84,12 +84,9 @@ class Game:
         while players != player:
             for x in phands[player]:
                 if x[0] == "Ace" and x[1] == "♠":
-                    if player == 0:
-                        print ("You go first")
-                    else:
-                        print ("Player %s is first" % (player+1))
-                        phands[player].remove(("Ace", "♠"))
-                    return player
+                    print ("Player %s is first" % (player+1))
+                    phands[player].remove(("Ace", "♠"))
+                return player
             player += 1
 
     ### Asks the player to select a card to put down, and checks if there are no errors ###
@@ -98,6 +95,8 @@ class Game:
             putdown = str(test.checkiscard("Which card do you want to put down (put pass to pass) : "))
             hmanydown = valuelist[putdown]
             putdownnum = test.royals(putdown)
+            toppilenum = 0
+            hmanytop = 0
             ### Index errors occur at beginning of piles ###
             try:
                 toppilenum = test.royals(toppile[1])
@@ -116,7 +115,7 @@ class Game:
                 formatedr = str(r)[1:-1] 
                 num = test.checkiscard("you have multiples of that card, whould you like to play %s or %s? : " % (formatedr,hmanydown))
             ### If you need to play multiples, it sets that up ###
-            elif hmanytop <= hmanydown and toppilenum < putdownnum:
+            elif hmanytop <= hmanydown and toppilenum < putdownnum and hmanytop != 0:
                 num = hmanytop
             ### You do not have enough of that card to play ###
             elif hmanytop > hmanydown:
@@ -127,13 +126,17 @@ class Game:
                 print("Number too low")
                 num = 0
             ### Just in case all else fails ###
+            elif num == 1:
+                pass
             else:
                 print ("Something went wrong try again")
-                num = 0   
+                num = 0
             ### Everything is okay and puts the card down ###
             if num <= hmanydown and num > 0:
                 return (num, putdown)
             ### Catch it if putdown is more than 4 ###
+            elif num == 0:
+                pass
             else:
                 print("You don't have that many of that card")
 
@@ -200,3 +203,60 @@ class test:
                 print("That was not a number")
             else:
                 return test
+
+def round(firstplayer, players, hands):
+    myDeck = Deck()
+    theHand = Hand()
+    myGame = Game()
+
+    toppile = []
+    pile = []
+
+    currentplayer = firstplayer
+    while True:
+
+        myhand = theHand.order(hands[currentplayer])
+        valuelist = theHand.values(myhand)
+        theHand.print(myhand,currentplayer)
+
+        howmany, putdown = myGame.selectcard(valuelist, toppile)
+
+        if howmany != 0 or putdown !=0:
+            myhand, pile = myGame.playcard(myhand, howmany, putdown, pile)
+            toppile = myGame.topofpile(pile)
+
+        if currentplayer - 1 == firstplayer:
+            print("round over")
+            break
+        elif currentplayer >= 0:
+            currentplayer += 1
+        elif currentplayer - 1 <= players:
+            currentplayer = 1
+        else:
+            print ("error")
+
+
+
+
+
+
+
+
+def play():
+
+    myDeck = Deck()
+    theHand = Hand()
+    myGame = Game()
+
+
+    deck = myDeck.build()
+    myDeck.shuffle(deck)
+
+    players = myGame.intro()
+    hands = myDeck.split(players, deck)
+    first = myGame.first(hands,players)
+
+    round(first,players,hands)
+
+play()
+

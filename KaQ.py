@@ -52,7 +52,7 @@ class Hand:
 
     ### For all cards in your hand print individual card ###
     def print(self, phand, currentplayer):
-        print("Here is player %s's hand: " % (currentplayer+1), end= " ")
+        print("Here is player %s's hand: " % (currentplayer + 1), end= " ")
         for x in phand:
             print ("%s%s" % (x[0],x[1]), end=" " )
         print()
@@ -86,8 +86,9 @@ class Game:
                 if x[0] == "Ace" and x[1] == "♠":
                     print ("Player %s is first" % (player+1))
                     phands[player].remove(("Ace", "♠"))
-                return player
+                    return player
             player += 1
+            
 
     ### Asks the player to select a card to put down, and checks if there are no errors ###
     def selectcard(self, valuelist, toppile):
@@ -102,6 +103,8 @@ class Game:
                 toppilenum = test.royals(toppile[1])
                 hmanytop = toppile[0]
             except IndexError:
+                pass
+            except TypeError:
                 pass 
             num = 1
             if putdown == "pass":
@@ -109,6 +112,7 @@ class Game:
             ### Checks to see if what you put down is a card you have. If not, informs you ###
             elif putdown not in valuelist:
                 print ("You do not have that card \n")
+                num = 0
             ### If pile is empty and you have multiples of that card, asks how many you would like to put down ###
             elif hmanydown >= 2 and toppile == []:
                 r = list(range(1, hmanydown))
@@ -122,7 +126,7 @@ class Game:
                 print("Not enough of that card")
                 num = 0
             ### You have enough to play but the card is too low to play ###
-            elif hmanytop <= hmanydown and toppilenum > putdownnum:
+            elif hmanytop <= hmanydown and toppilenum >= putdownnum:
                 print("Number too low")
                 num = 0
             ### Just in case all else fails ###
@@ -131,6 +135,7 @@ class Game:
             else:
                 print ("Something went wrong try again")
                 num = 0
+            
             ### Everything is okay and puts the card down ###
             if num <= hmanydown and num > 0:
                 return (num, putdown)
@@ -153,7 +158,9 @@ class Game:
 
     ### Checks to see if there are multiples of the card on top and informs you have how many ###
     def topofpile(self, pile):
-        topcard = pile[-1][0]
+        topcard = 0
+        if len(pile) > 0:
+            topcard = pile[-1][0]
         if len(pile) > 1 and topcard == pile[-2][0]:
             if len(pile) > 2 and topcard == pile[-3][0]:
                 if len(pile) > 3 and topcard == pile[-4][0]:
@@ -166,9 +173,14 @@ class Game:
             print ("Beat Double %s's" % (topcard))
             toppile = [2,topcard]
             return toppile
-        print ("Beat a Single %s" % (topcard))
-        toppile = [1,topcard]
-        return toppile
+        if topcard != 0:
+            print ("Beat a Single %s" % (topcard))
+            toppile = [1,topcard]
+            return toppile
+        else:
+            print ("The pile is empty, play anything")
+            toppile = []
+            return toppile
 
 class test:
 
@@ -204,6 +216,7 @@ class test:
             else:
                 return test
 
+### One round is every player goes once. At the end, the pile is cleared and it's started again ###
 def round(firstplayer, players, hands):
     myDeck = Deck()
     theHand = Hand()
@@ -218,36 +231,29 @@ def round(firstplayer, players, hands):
         myhand = theHand.order(hands[currentplayer])
         valuelist = theHand.values(myhand)
         theHand.print(myhand,currentplayer)
-
         howmany, putdown = myGame.selectcard(valuelist, toppile)
 
         if howmany != 0 or putdown !=0:
             myhand, pile = myGame.playcard(myhand, howmany, putdown, pile)
-            toppile = myGame.topofpile(pile)
 
-        if currentplayer - 1 == firstplayer:
-            print("round over")
-            break
-        elif currentplayer >= 0:
-            currentplayer += 1
-        elif currentplayer - 1 <= players:
-            currentplayer = 1
+        if currentplayer >= players - 1:
+            currentplayer = 0
         else:
-            print ("error")
+            currentplayer += 1
 
-
-
-
-
-
-
+        if currentplayer == firstplayer:
+            print("----Round Over---- \n----New Round----")
+            
+            pile = []
+            toppile = []
+        toppile = myGame.topofpile(pile)
+        
 
 def play():
 
     myDeck = Deck()
     theHand = Hand()
     myGame = Game()
-
 
     deck = myDeck.build()
     myDeck.shuffle(deck)

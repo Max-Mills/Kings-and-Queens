@@ -19,9 +19,10 @@ class Deck:
         ### Takes the data from the json and puts it into the data variable ###
         with open('Cards.json', 'r') as j:
             data = load(j)
-        z = len(data["card"])
+
+        ### While there are suits, looks at every number the suit has ###
         w = 0
-        while w != z:
+        while w != len(data["card"]):
             for y in data["card"][w]:
                 for x in data["card"][w][y]:
                     card = (x,y)
@@ -38,11 +39,10 @@ class Deck:
         numEachHand = int(len(theDeck)/players)
         end = numEachHand
         start = 0
-        while players != 0:
+        for x in range(players):
             hands.append(theDeck[start:end])
             start = 1 + end
             end += numEachHand
-            players -= 1
         return hands
 
 class Hand:
@@ -51,13 +51,13 @@ class Hand:
     def order(self, phand):
         phand = sorted(phand, key=itemgetter(0))
         return phand
-
+    ### For all cards in your hand print individual card
     def print(self, phand):
-        print(" \n Here is your hand: ")
+        print("Here is your hand: ", end= " ")
         for x in phand:
             print ("%s%s" % (x[0],x[1]), end=" " )
         print()
-
+    ### Count how many pairs of cards a hand has ### 
     def values(self, phand):
         checklist = []
         for x in phand:
@@ -65,15 +65,18 @@ class Hand:
         return Counter(checklist)
 
 class Game:
-
+    ### Ask the player how many players there are to split the deck evenly ###
     def intro(self):
         print ("♥ Welcome to my card game ♦")
         while True:
-            players = int(input("How many players are there? (3-6) "))
-            if players >= 3 and players <= 6:
+            players = test.checkiscard("How many players are there? (3-6) ")
+            if players in ("Jack", "Queen", "King", "Ace", "pass"):
+                print ("Please don't type names")
+            elif players >= 3 and players <= 6:
                 return players
-            print ("Can't play with that many players")
-
+            else:
+                print ("Can't play with that many players")
+    ### This determines which player has the Ace of Spades. This player goes first ###
     def first(self, phands, players):
         player = 0
         while players != player:
@@ -88,78 +91,67 @@ class Game:
             player += 1
 
     def selectcard(self, valuelist, toppile):
-        
         while True:
             num = 1
             
-            putdown = str(checkiscard("Which card do you want to put down (put pass to pass) : "))
+            putdown = str(test.checkiscard("Which card do you want to put down (put pass to pass) : "))
+            hmanydown = valuelist[putdown]
+            putdownnum = test.royals(putdown)
+            # hmanytop = 0
+            # toppilenum = 0
 
+            ### Index errors occur at begining of piles ###
             try:
-                putdownnum = int(putdown)
-            except ValueError:
-                if putdown == "Jack":
-                    putdownnum = 11
-                elif putdown == "Queen":
-                    putdownnum = 12
-                elif putdown == "King":
-                    putdownnum = 13
-                elif putdown == "Ace":
-                    putdownnum = 14
-                else:
-                    pass
-
-            try:
-                toppilenum = int(toppile[1])
-            except ValueError:
-                if toppile[1] == "Jack":
-                    toppilenum = 11
-                elif toppile[1] == "Queen":
-                    toppilenum = 12
-                elif toppile[1] == "King":
-                    toppilenum = 13
-                elif toppile[1] == "Ace":
-                    toppilenum = 14
-                else:
-                    pass
+                toppilenum = test.royals(toppile[1])
+                hmanytop = toppile[0]
             except IndexError:
-                pass
+                pass 
 
-
+            num = 1
             if putdown == "pass":
                 return 0,0
+            ### checks to see if what you put down is a card you have. If not, informs you ###
             elif putdown not in valuelist:
                 print ("You do not have that card \n")
-            elif valuelist[putdown] == 2 and toppile == []:
-                num = checkiscard("you have doubles of that card, whould you like to play 1 or 2 of it? : ")
-            elif valuelist[putdown] > 2 and toppile == []:
-                r = list(range(1, valuelist[putdown]))
+            ### If pile is empty and you can play doubles, asks if you'd like to ###
+            elif hmanydown == 2 and toppile == []:
+                num = test.checkiscard("you have doubles of that card, whould you like to play 1 or 2 of it? : ")
+            ### If pile is empty and you have multiples of that card, asks how many you'd like to put down ###
+            elif hmanydown > 2 and toppile == []:
+                r = list(range(1, hmanydown))
                 formatedr = str(r)[1:-1] 
-                num = checkiscard("you have multiples of that card, whould you like to play %s or %s? : " % (formatedr,valuelist[putdown]))
-            elif toppile == []:
-                pass
-            elif toppile[0] == 1 and toppilenum < putdownnum:
-                print ("You put down 1 %s " % (putdown))
-            elif toppile[0] < valuelist[putdown] and toppilenum < putdownnum:
-                print ("You put down %s %s's " % (toppile[0], putdown))
-                num = toppile[0]
-            elif toppile[0] > valuelist[putdown]:
+                num = test.checkiscard("you have multiples of that card, whould you like to play %s or %s? : " % (formatedr,hmanydown))
+            ### If you need to play multiples, it sets that up ###
+            elif hmanytop <= hmanydown and toppilenum < putdownnum:
+                num = hmanytop
+            ### Don't have enough of that card to play ###
+            elif hmanytop > hmanydown:
                 num = 0
-            elif toppile[0] <= valuelist[putdown] and toppilenum > putdownnum:
+            ### You have enough to play but the card is too low to play ###
+            elif hmanytop <= hmanydown and toppilenum > putdownnum:
                 print("Number too low")
                 num = 0
+            ### Just in case all else fails ###
             else:
                 print ("Something went wrong try again")
-                num = 0    
+                num = 0   
 
-            if num <= valuelist[putdown] and num > 0:
+            if num <= hmanydown and num > 0:
+                return (num, putdown)
+            ### Catch it if putdown is more than 4 ###
+            elif putdownnum > 4:
+                pass
+            else:
+                print("You don't have that many of that card") 
+
+            if num <= hmanydown and num > 0:
                 return (num, putdown)
             ###Catch it if putdown is more than 4###
             elif putdownnum > 4:
                 pass
-            elif num > 0:
-                print("You don't have that many of that card \n")
             else:
-                pass
+                print("You don't have that many of that card")
+
 
     def playcard(self, phand, howmany, putdown, pile):
 
@@ -177,27 +169,47 @@ class Game:
         if len(pile) > 1 and topcard == pile[-2][0]:
             if len(pile) > 2 and topcard == pile[-3][0]:
                 if len(pile) > 3 and topcard == pile[-4][0]:
-                    print ("Quadruple %s" % (topcard))
+                    print ("Beat Quadruple %s" % (topcard))
                     toppile = [4,topcard]
                     return toppile
-                print ("Triple %s" % (topcard))
+                print ("Beat Triple %s" % (topcard))
                 toppile = [3,topcard]
                 return toppile
-            print ("Double %s" % (topcard))
+            print ("Beat Double %s" % (topcard))
             toppile = [2,topcard]
             return toppile
-        print ("Single %s" % (topcard))
+        print ("Beat Single %s" % (topcard))
         toppile = [1,topcard]
         return toppile
 
-def checkiscard(question):
-    while True:
-        tester = input(question)
-        if tester in ("Jack", "Queen", "King", "Ace", "pass"):
-            return tester
+class test:
+
+    def royals(test):
+        num = 0
         try:
-            test = int(tester)
+            num = int(test)
         except ValueError:
-            print("That was not a number \n")
-        else:
-            return test
+            if test == "Jack":
+                num = 11
+            elif test == "Queen":
+                num = 12
+            elif test == "King":
+                num = 13
+            elif test == "Ace":
+                num = 14
+            else:
+                pass
+        return num
+
+    def checkiscard(question):
+        while True:
+            tester = input(question)
+            print()
+            if tester in ("Jack", "Queen", "King", "Ace", "pass"):
+                return tester
+            try:
+                test = int(tester)
+            except ValueError:
+                print("That was not a number")
+            else:
+                return test

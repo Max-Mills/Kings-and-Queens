@@ -23,12 +23,14 @@ class Deck:
         ### Takes the data from the json and puts it into the data variable ###
         with open('Cards.json', 'r') as j:
             data = load(j)
-
-        for x in SUIT:
-            for y in data["card"]:
-                #card = "%s of %s" % (y,x)
-                card = y,x
-                deck.append(card)
+        z = len(data["card"])
+        w = 0
+        while w != z:
+            for y in data["card"][w]:
+                for x in data["card"][w][y]:
+                    card = (x,y)
+                    deck.append(card)
+            w += 1
         return deck
     
     ### Shuffles the deck ###
@@ -206,39 +208,7 @@ def checkiscard(question):
         
         
         
-def play():
 
-    myDeck = Deck()
-    theHand = Hand()
-    myGame = Game()
-
-
-    deck = myDeck.build()
-    myDeck.shuffle(deck)
-
-    players = myGame.intro()
-
-
-    hands = myDeck.split(players, deck)
-    myhand = theHand.order(hands[0])
-    valuelist = theHand.values(myhand)
-    theHand.print(myhand)
-
-    myGame.first(hands,players)
-    toppile = []
-    pile = []
-
-    while myhand != 0:
-        howmany, putdown = myGame.selectcard(valuelist, toppile)
-        if howmany != 0 or putdown !=0:
-            myhand, pile = myGame.playcard(myhand, howmany, putdown, pile)
-            toppile = myGame.topofpile(pile)
-            theHand.print(myhand)
-
-    
-
-
-play()
 
             
        

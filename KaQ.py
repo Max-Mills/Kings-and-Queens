@@ -85,6 +85,7 @@ class Game:
                         print ("You go first")
                     else:
                         print ("Player %s is first" % (player+1))
+                        phands[player].remove(("Ace", "♠"))
                     return player
             player += 1
 
@@ -94,7 +95,41 @@ class Game:
             num = 1
             
             putdown = str(checkiscard("Which card do you want to put down (put pass to pass) : "))
-            if putdown not in valuelist:
+
+            try:
+                putdownnum = int(putdown)
+            except ValueError:
+                if putdown == "Jack":
+                    putdownnum = 11
+                elif putdown == "Queen":
+                    putdownnum = 12
+                elif putdown == "King":
+                    putdownnum = 13
+                elif putdown == "Ace":
+                    putdownnum = 14
+                else:
+                    pass
+
+            try:
+                toppilenum = int(toppile[1])
+            except ValueError:
+                if toppile[1] == "Jack":
+                    toppilenum = 11
+                elif toppile[1] == "Queen":
+                    toppilenum = 12
+                elif toppile[1] == "King":
+                    toppilenum = 13
+                elif toppile[1] == "Ace":
+                    toppilenum = 14
+                else:
+                    pass
+            except IndexError:
+                pass
+
+
+            if putdown == "pass":
+                return 0,0
+            elif putdown not in valuelist:
                 print ("You do not have that card \n")
             elif valuelist[putdown] == 2 and toppile == []:
                 num = checkiscard("you have doubles of that card, whould you like to play 1 or 2 of it? : ")
@@ -104,14 +139,14 @@ class Game:
                 num = checkiscard("you have multiples of that card, whould you like to play %s or %s? : " % (formatedr,valuelist[putdown]))
             elif toppile == []:
                 pass
-            elif toppile[0] == 1 and int(toppile[1]) < int(putdown) and toppile != []:
+            elif toppile[0] == 1 and toppilenum < putdownnum:
                 print ("You put down 1 %s " % (putdown))
-            elif toppile[0] < valuelist[putdown] and int(toppile[1]) < int(putdown):
+            elif toppile[0] < valuelist[putdown] and toppilenum < putdownnum:
                 print ("You put down %s %s's " % (toppile[0], putdown))
                 num = toppile[0]
             elif toppile[0] > valuelist[putdown]:
                 num = 0
-            elif toppile[0] < valuelist[putdown] and int(toppile[1]) > int(putdown):
+            elif toppile[0] <= valuelist[putdown] and toppilenum > putdownnum:
                 print("Number too low")
                 num = 0
             else:
@@ -121,7 +156,7 @@ class Game:
             if num <= valuelist[putdown] and num > 0:
                 return (num, putdown)
             ###Catch it if putdown is more than 4###
-            elif int(putdown) > 4:
+            elif putdownnum > 4:
                 pass
             elif num > 0:
                 print("You don't have that many of that card \n")
@@ -160,7 +195,7 @@ class Game:
 def checkiscard(question):
     while True:
         tester = input(question)
-        if tester in ("Jack", "Queen", "King", "Ace"):
+        if tester in ("Jack", "Queen", "King", "Ace", "pass"):
             return tester
         try:
             test = int(tester)
@@ -195,9 +230,10 @@ def play():
 
     while myhand != 0:
         howmany, putdown = myGame.selectcard(valuelist, toppile)
-        myhand, pile = myGame.playcard(myhand, howmany, putdown, pile)
-        toppile = myGame.topofpile(pile)
-        theHand.print(myhand)
+        if howmany != 0 or putdown !=0:
+            myhand, pile = myGame.playcard(myhand, howmany, putdown, pile)
+            toppile = myGame.topofpile(pile)
+            theHand.print(myhand)
 
     
 

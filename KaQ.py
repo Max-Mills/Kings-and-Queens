@@ -6,19 +6,11 @@ from operator import itemgetter
 
 deck = []
 hands = []
+myhand = []
 card = []
-thePairs = []
 checklist = []
-sing = []
-doub = []
-trip = []
-quad = []
-players = 1
-
-
-### Takes the data from the json and puts it into the data variable ###
-with open('Cards.json', 'r') as j:
-    data = load(j)
+pile = []
+players = 0
 
 SUIT = ["♣", "♠", "♥", "♦"]
 
@@ -27,6 +19,11 @@ class Deck:
 
     #### Builds the deck using the data from json and the SUIT const ###
     def build(self):
+
+        ### Takes the data from the json and puts it into the data variable ###
+        with open('Cards.json', 'r') as j:
+            data = load(j)
+
         for x in SUIT:
             for y in data["card"]:
                 #card = "%s of %s" % (y,x)
@@ -37,67 +34,170 @@ class Deck:
     ### Shuffles the deck ###
     def shuffle(self, theDeck):
         shuffle(theDeck)
-        
 
     ### Splits the deck evenly depending on how many players there are ###
     def split(self, players, theDeck):
         numEachHand = int(len(theDeck)/players)
+        end = numEachHand
         start = 0
         while players != 0:
-            hands.append(theDeck[start:numEachHand])
-            start += numEachHand
-            numEachHand += numEachHand
+            hands.append(theDeck[start:end])
+            start = 1 + end
+            end += numEachHand
             players -= 1
         return hands
 
 class Hand:
 
-    
+    ### Orders the cards ###
     def order(self, phand):
         phand = sorted(phand, key=itemgetter(0))
         return phand
 
     def print(self, phand):
-        print("Here is your hand: ")
+        print(" \n Here is your hand: ")
         for x in phand:
             print ("%s%s" % (x[0],x[1]), end=" " )
         print()
-        print ("You have %d singles, %d double, %d triplet, %d quadruple" % (len(sing),len(doub),len(trip),len(quad)))
 
-
-    def checkPairs(self, phand):
+    def values(self, phand):
         checklist = []
         for x in phand:
             checklist.append(x[0])
-        checklist = Counter(checklist)
-        for y in checklist:
-            if checklist[y] == 1:
-                sing.append(y)
-            elif checklist[y] == 2:
-                doub.append(y)
-            elif checklist[y] == 3:
-                trip.append(y)
-            else:
-                quad.append(y)
-        return sing,doub,trip,quad
+        return Counter(checklist)
 
+class Game:
+
+    def intro(self):
+        print ("♥ Welcome to my card game ♦")
+        while True:
+            players = int(input("How many players are there? (3-6) "))
+            if players >= 3 and players <= 6:
+                return players
+            print ("Can't play with that many players")
+
+    def first(self, phands, players):
+        player = 0
+        while players != player:
+            for x in phands[player]:
+                if x[0] == "Ace" and x[1] == "♠":
+                    if player == 0:
+                        print ("You go first")
+                    else:
+                        print ("Player %s is first" % (player+1))
+                    return player
+            player += 1
+
+    def selectcard(self, valuelist, toppile):
+        
+        while True:
+            num = 1
+            
+            putdown = str(checkiscard("Which card do you want to put down (put pass to pass) : "))
+            if putdown not in valuelist:
+                print ("You do not have that card \n")
+            elif valuelist[putdown] == 2 and toppile == []:
+                num = checkiscard("you have doubles of that card, whould you like to play 1 or 2 of it? : ")
+            elif valuelist[putdown] > 2 and toppile == []:
+                r = list(range(1, valuelist[putdown]))
+                formatedr = str(r)[1:-1] 
+                num = checkiscard("you have multiples of that card, whould you like to play %s or %s? : " % (formatedr,valuelist[putdown]))
+            elif toppile == []:
+                pass
+            elif toppile[0] == 1 and int(toppile[1]) < int(putdown) and toppile != []:
+                print ("You put down 1 %s " % (putdown))
+            elif toppile[0] < valuelist[putdown] and int(toppile[1]) < int(putdown):
+                print ("You put down %s %s's " % (toppile[0], putdown))
+                num = toppile[0]
+            elif toppile[0] > valuelist[putdown]:
+                num = 0
+            elif toppile[0] < valuelist[putdown] and int(toppile[1]) > int(putdown):
+                print("Number too low")
+                num = 0
+            else:
+                print ("Something went wrong try again")
+                num = 0    
+
+            if num <= valuelist[putdown] and num > 0:
+                return (num, putdown)
+            ###Catch it if putdown is more than 4###
+            elif int(putdown) > 4:
+                pass
+            elif num > 0:
+                print("You don't have that many of that card \n")
+            else:
+                pass
+
+    def playcard(self, phand, howmany, putdown, pile):
+
+        while howmany != 0:
+            for x in phand:
+                if x[0] == putdown:
+                    phand.remove(x)
+                    break
+            pile.append(x)
+            howmany -= 1
+        return phand, pile
+
+    def topofpile(self, pile):
+        topcard = pile[-1][0]
+        if len(pile) > 1 and topcard == pile[-2][0]:
+            if len(pile) > 2 and topcard == pile[-3][0]:
+                if len(pile) > 3 and topcard == pile[-4][0]:
+                    print ("Quadruple %s" % (topcard))
+                    toppile = [4,topcard]
+                    return toppile
+                print ("Triple %s" % (topcard))
+                toppile = [3,topcard]
+                return toppile
+            print ("Double %s" % (topcard))
+            toppile = [2,topcard]
+            return toppile
+        print ("Single %s" % (topcard))
+        toppile = [1,topcard]
+        return toppile
+
+def checkiscard(question):
+    while True:
+        tester = input(question)
+        if tester in ("Jack", "Queen", "King", "Ace"):
+            return tester
+        try:
+            test = int(tester)
+        except ValueError:
+            print("That was not a number \n")
+        else:
+            return test
+        
+        
         
 def play():
 
     myDeck = Deck()
-    myHand = Hand()
+    theHand = Hand()
+    myGame = Game()
+
 
     deck = myDeck.build()
     myDeck.shuffle(deck)
 
-    print ("♥ Welcome to my card game ♦")
-    players = int(input("How many players are there? "))
+    players = myGame.intro()
+
 
     hands = myDeck.split(players, deck)
-    hands = myHand.order(hands[1])
-    sing,doub,trip,quad = myHand.checkPairs(hands)
+    myhand = theHand.order(hands[0])
+    valuelist = theHand.values(myhand)
+    theHand.print(myhand)
 
-    myHand.print(hands)
+    myGame.first(hands,players)
+    toppile = []
+    pile = []
+
+    while myhand != 0:
+        howmany, putdown = myGame.selectcard(valuelist, toppile)
+        myhand, pile = myGame.playcard(myhand, howmany, putdown, pile)
+        toppile = myGame.topofpile(pile)
+        theHand.print(myhand)
 
     
 

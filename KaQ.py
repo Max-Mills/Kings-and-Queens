@@ -12,15 +12,12 @@ pile = []
 players = 0
 
 class Deck:
-
     #### Builds the deck using the data from json and the SUIT const ###
     def build(self):
-
         ### Takes the data from the json and puts it into the data variable ###
         with open('Cards.json', 'r') as j:
             data = load(j)
-
-        ### While there are suits, looks at every number the suit has ###
+        ### Gets the suits and pairs them with the numbers ###
         w = 0
         while w != len(data["card"]):
             for y in data["card"][w]:
@@ -46,12 +43,11 @@ class Deck:
         return hands
 
 class Hand:
-
     ### Orders the cards ###
     def order(self, phand):
         phand = sorted(phand, key=itemgetter(0))
         return phand
-    ### For all cards in your hand print individual card
+    ### For all cards in your hand print individual card ###
     def print(self, phand):
         print("Here is your hand: ", end= " ")
         for x in phand:
@@ -76,6 +72,7 @@ class Game:
                 return players
             else:
                 print ("Can't play with that many players")
+
     ### This determines which player has the Ace of Spades. This player goes first ###
     def first(self, phands, players):
         player = 0
@@ -90,27 +87,22 @@ class Game:
                     return player
             player += 1
 
+    ### asks the player to select a card to put down, and checks if there are no errors ###
     def selectcard(self, valuelist, toppile):
         while True:
-            num = 1
-            
             putdown = str(test.checkiscard("Which card do you want to put down (put pass to pass) : "))
             hmanydown = valuelist[putdown]
             putdownnum = test.royals(putdown)
-            # hmanytop = 0
-            # toppilenum = 0
-
-            ### Index errors occur at begining of piles ###
+            ### Index errors occur at beginning of piles ###
             try:
                 toppilenum = test.royals(toppile[1])
                 hmanytop = toppile[0]
             except IndexError:
                 pass 
-
             num = 1
             if putdown == "pass":
                 return 0,0
-            ### checks to see if what you put down is a card you have. If not, informs you ###
+            ### Checks to see if what you put down is a card you have. If not, informs you ###
             elif putdown not in valuelist:
                 print ("You do not have that card \n")
             ### If pile is empty and you can play doubles, asks if you'd like to ###
@@ -135,26 +127,16 @@ class Game:
             else:
                 print ("Something went wrong try again")
                 num = 0   
-
+            ### Everything is okay and puts the card down ###
             if num <= hmanydown and num > 0:
                 return (num, putdown)
             ### Catch it if putdown is more than 4 ###
             elif putdownnum > 4:
                 pass
             else:
-                print("You don't have that many of that card") 
-
-            if num <= hmanydown and num > 0:
-                return (num, putdown)
-            ###Catch it if putdown is more than 4###
-            elif putdownnum > 4:
-                pass
-            else:
                 print("You don't have that many of that card")
 
-
     def playcard(self, phand, howmany, putdown, pile):
-
         while howmany != 0:
             for x in phand:
                 if x[0] == putdown:
@@ -183,7 +165,6 @@ class Game:
         return toppile
 
 class test:
-
     def royals(test):
         num = 0
         try:

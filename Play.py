@@ -18,7 +18,7 @@ def play():
     valuelist = theHand.values(myhand)
     theHand.print(myhand)
 
-    myGame.first(hands,players)
+    first = myGame.first(hands,players)
     toppile = []
     pile = []
 

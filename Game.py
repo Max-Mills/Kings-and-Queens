@@ -21,10 +21,10 @@ def intro():
             print ("Can't play with that many players")
 
 ### This determines which player has the Ace of Spades. This player goes first ###
-def first(phands, players):
+def firstplayer(phands, players):
     player = 0
 
-    while players != player:
+    while players > player:
         for x in phands[player]:
             if x[0] == "Ace" and x[1] == "♠":
                 print ("Player %s is first" % (player+1))
